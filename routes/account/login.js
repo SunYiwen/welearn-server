@@ -21,7 +21,7 @@ const login = async (code) => {
         method: 'GET',
         port: 443,
     });
-    console.log('data', data);
+    return JSON.parse(data);
 }
 
 module.exports = login;

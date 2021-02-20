@@ -1,6 +1,6 @@
 const fs = require('fs');
 const https = require('https');
-const { resolve } = require('path');
+var WXBizDataCrypt = require('./WXBizDataCrypt')
 
 /* 自动注册routes文件夹下的路由 */
 const useRoutes = (app) => {
@@ -49,7 +49,7 @@ const request = (options) => {
   return new Promise((resolve, reject) => {
     const req = https.request(options, function (res) {
       res.setEncoding('utf-8');
-      
+
       // 不存在中文字符，直接使用二进制流相加即可
       let content = '';
       res.on('data', function (chunk) {
@@ -69,9 +69,18 @@ const request = (options) => {
   });
 }
 
+const parseUserInfo = (session_key, EncryptedData, IV) => {
+  const appid = 'wx94376f6218f2b6b6';
+  const pc = new WXBizDataCrypt(appid, session_key);
+  const data = pc.decryptData(EncryptedData, IV);
+  console.log('user', data);
+  return data;
+}
+
 
 module.exports = {
   useRoutes,
   complexPath,
   request,
+  parseUserInfo
 } 
