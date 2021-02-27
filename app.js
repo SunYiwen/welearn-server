@@ -7,6 +7,10 @@ const bodyparser = require('koa-bodyparser')
 const logger = require('koa-logger')
 
 const utils = require('./utils');
+const createAllTables = require('./utils/mysql/createAllTables');
+
+// 注册数据库表
+createAllTables();
 
 // error handler
 onerror(app)
