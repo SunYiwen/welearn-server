@@ -1,6 +1,7 @@
 const fs = require('fs');
 const https = require('https');
-var WXBizDataCrypt = require('./WXBizDataCrypt')
+var WXBizDataCrypt = require('./WXBizDataCrypt');
+const jwt = require('jsonwebtoken');
 
 /* 自动注册routes文件夹下的路由 */
 const useRoutes = (app) => {
@@ -78,9 +79,21 @@ const parseUserInfo = (session_key, EncryptedData, IV) => {
 }
 
 
+/* 生成JWT token */
+const createJWT = (userInfo, openid) => {
+  const profile = {
+    openid: userInfo.wxOpenID,
+    userid: userInfo.userID,
+  };
+  const expiresIn = 60 * 60 * 24 * 7;
+  const token = jwt.sign(profile, 'welearn', { expiresIn });
+  return token;
+}
+
 module.exports = {
   useRoutes,
   complexPath,
   request,
-  parseUserInfo
+  parseUserInfo,
+  createJWT,
 } 

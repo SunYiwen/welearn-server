@@ -13,11 +13,11 @@ let query = function (sql, values) {
       if (err) {
         reject(err);
       } else {
-        connection.query(sql, values, (err, rows) => {
+        connection.query(sql, values, (err, results) => {
           if (err) {
             reject(err);
           } else {
-            resolve(rows);
+            resolve(results);
           }
           connection.release();
         });
@@ -27,5 +27,5 @@ let query = function (sql, values) {
 }
 
 module.exports = {
-  query
+  query,
 }

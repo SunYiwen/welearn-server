@@ -1,6 +1,7 @@
 const { complexPath, request } = require("../../utils");
 
-const login = async (code) => {
+const code2Session = async (code) => {
+    console.log('code',code);
 
     // 合成请求参数
     const options = {
@@ -21,7 +22,8 @@ const login = async (code) => {
         method: 'GET',
         port: 443,
     });
+    console.log('data', data);
     return JSON.parse(data);
 }
 
-module.exports = login;
+module.exports = code2Session;

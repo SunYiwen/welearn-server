@@ -1,5 +1,6 @@
-const { parseUserInfo } = require('../../utils');
-const login = require('./login');
+const { parseUserInfo, createJWT } = require('../../utils');
+const code2Session = require('./login');
+const { query } = require('../../utils/mysql/db');
 const router = require('koa-router')();
 
 // 设置路由前缀
@@ -10,12 +11,24 @@ router.get('/', function (ctx, next) {
 });
 
 
-router.post('/login', function (ctx, next) {
+router.post('/login', async function (ctx, next) {
   const body = ctx.request.body;
   const { code } = body;
-  login(code);
+  const { openid } = await code2Session(code);
 
-  ctx.body = 'account/login';
+  /* 数据库查询 */
+  const sql = 'SELECT * FROM user where wxOpenID = ?';
+  const results = await query(sql, [openid]);
+
+  /* 生成token */
+  const token = createJWT(results[0], openid);
+
+  const res = {
+    UserInfoDetail: results[0],
+    Token: token,
+  };
+
+  ctx.body = res;
 });
 
 router.post('/user-auth', async function (ctx, next) {
