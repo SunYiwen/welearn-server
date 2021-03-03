@@ -12,6 +12,7 @@ router.get('/', function (ctx, next) {
 
 
 router.post('/login', async function (ctx, next) {
+  /* 提取请求参数 */
   const body = ctx.request.body;
   const { code } = body;
   const { openid } = await code2Session(code);
@@ -20,15 +21,22 @@ router.post('/login', async function (ctx, next) {
   const sql = 'SELECT * FROM user where wxOpenID = ?';
   const results = await query(sql, [openid]);
 
+  /* 用户记录不存在 */
+  if (!results || results.length === 0) {
+    ctx.body = {
+      Code: 2001,
+      Msg: '用户记录不存在',
+    };
+
+    return ctx.response.status = 404;
+  }
   /* 生成token */
   const token = createJWT(results[0], openid);
 
-  const res = {
+  ctx.body = {
     UserInfoDetail: results[0],
     Token: token,
   };
-
-  ctx.body = res;
 });
 
 router.post('/user-auth', async function (ctx, next) {
