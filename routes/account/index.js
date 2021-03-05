@@ -39,18 +39,21 @@ router.post('/login', async function (ctx, next) {
   };
 });
 
-router.post('/user-auth', async function (ctx, next) {
+/* 注册学生信息 */
+router.post('/register-student', async function (ctx, next) {
   const body = ctx.request.body;
-  const { Code, IV, EncryptedData } = body;
-  console.log(IV, EncryptedData, Code);
-  let { session_key } = await login(Code);
-  console.log('session_key', session_key);
+  const { Code, Name, AvatarURL, PhoneNumber, SchoolName, Major } = body;
+  let { openid } = await code2Session(Code);
 
-  if (!session_key) {
-    session_key = 'WhGo9wxl3qxoSgDhBAZf3Q==';
+  /* 往数据库中插入数据 */
+  const sql = 'INSERT INTO user set ?';
+  await query(sql, { name: Name, avatarURL: AvatarURL, phoneNumber: PhoneNumber, wxOpenID: openid, schoolName: SchoolName, major: Major });
+
+  ctx.body = {
+    Code: 200,
+    Msg: 'success',
   }
-  parseUserInfo(session_key, EncryptedData, IV);
-  ctx.body = 'user-auth';
+
 });
 
 
