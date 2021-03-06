@@ -2,6 +2,7 @@ const fs = require('fs');
 const https = require('https');
 var WXBizDataCrypt = require('./WXBizDataCrypt');
 const jwt = require('jsonwebtoken');
+const schoolData = require('../data/school');
 
 /* 自动注册routes文件夹下的路由 */
 const useRoutes = (app) => {
@@ -90,10 +91,48 @@ const createJWT = (userInfo, openid) => {
   return token;
 }
 
+/* 获取省份列表 */
+const createProviceList = () => {
+  const proviceList = [];
+  for (let provice of schoolData) {
+    proviceList.push(provice.province_name);
+  }
+  return proviceList;
+}
+
+/* 获取对应省份的城市列表 */
+const createCityList = (proviceName) => {
+  const proviceItem = schoolData.filter(item => {
+    return item.province_name === proviceName;
+  })[0];
+
+  const cityList = [];
+  for (let city of proviceItem.cities) {
+    cityList.push(city.city_name);
+  }
+  return cityList;
+}
+
+/* 获取对应省份、城市的学校列表 */
+const createSchoolList = (proviceName, cityName) => {
+  const proviceItem = schoolData.filter(item => {
+    return item.province_name === proviceName;
+  })[0];
+  
+  const cityItem = proviceItem.cities.filter(city => {
+    return city.city_name === cityName;
+  })[0];
+
+  return cityItem.universities;
+}
+
 module.exports = {
   useRoutes,
   complexPath,
   request,
   parseUserInfo,
   createJWT,
+  createProviceList,
+  createCityList,
+  createSchoolList
 } 

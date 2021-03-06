@@ -23,12 +23,10 @@ router.post('/login', async function (ctx, next) {
 
   /* 用户记录不存在 */
   if (!results || results.length === 0) {
-    ctx.body = {
+    return ctx.body = {
       Code: 2001,
       Msg: '用户记录不存在',
     };
-
-    return ctx.response.status = 404;
   }
   /* 生成token */
   const token = createJWT(results[0], openid);
@@ -45,9 +43,19 @@ router.post('/register-student', async function (ctx, next) {
   const { Code, Name, AvatarURL, PhoneNumber, SchoolName, Major } = body;
   let { openid } = await code2Session(Code);
 
+  /* 电话号码作为唯一id */
+  const findUserByPhoneNumber = 'SELECT * FROM user WHERE phoneNumber = ?';
+  const users = await query(findUserByPhoneNumber, [PhoneNumber]);
+  if (users.length > 0) {
+    return ctx.body = {
+      Code: 2002,
+      Msg: '该手机号码已被注册',
+    }
+  }
+
   /* 往数据库中插入数据 */
   const sql = 'INSERT INTO user set ?';
-  await query(sql, { name: Name, avatarURL: AvatarURL, phoneNumber: PhoneNumber, wxOpenID: openid, schoolName: SchoolName, major: Major });
+  await query(sql, { name: Name, avatarURL: AvatarURL, phoneNumber: PhoneNumber, wxOpenID: openid, schoolName: SchoolName, major: Major, userType: 1 });
 
   ctx.body = {
     Code: 200,
