@@ -38,9 +38,9 @@ router.post('/login', async function (ctx, next) {
 });
 
 /* 注册学生信息 */
-router.post('/register-student', async function (ctx, next) {
+router.post('/register-user', async function (ctx, next) {
   const body = ctx.request.body;
-  const { Code, Name, AvatarURL, PhoneNumber, SchoolName, Major } = body;
+  const { Code, Name, AvatarURL, PhoneNumber, SchoolName, Major, UserType } = body;
   let { openid } = await code2Session(Code);
 
   /* 电话号码作为唯一id */
@@ -55,7 +55,7 @@ router.post('/register-student', async function (ctx, next) {
 
   /* 往数据库中插入数据 */
   const sql = 'INSERT INTO user set ?';
-  await query(sql, { name: Name, avatarURL: AvatarURL, phoneNumber: PhoneNumber, wxOpenID: openid, schoolName: SchoolName, major: Major, userType: 1 });
+  await query(sql, { name: Name, avatarURL: AvatarURL, phoneNumber: PhoneNumber, wxOpenID: openid, schoolName: SchoolName, major: Major, userType: UserType });
 
   ctx.body = {
     Code: 200,
