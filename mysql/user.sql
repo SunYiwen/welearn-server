@@ -8,4 +8,4 @@ CREATE TABLE IF NOT EXISTS `user` (
   `schoolName` varchar(255) DEFAULT '',
   `major` varchar(255) DEFAULT '',
   PRIMARY KEY(`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8

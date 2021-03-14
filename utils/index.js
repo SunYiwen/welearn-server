@@ -3,6 +3,7 @@ const https = require('https');
 var WXBizDataCrypt = require('./WXBizDataCrypt');
 const jwt = require('jsonwebtoken');
 const schoolData = require('../data/school');
+let Base64 = require('js-base64').Base64;
 
 /* 自动注册routes文件夹下的路由 */
 const useRoutes = (app) => {
@@ -118,12 +119,26 @@ const createSchoolList = (proviceName, cityName) => {
   const proviceItem = schoolData.filter(item => {
     return item.province_name === proviceName;
   })[0];
-  
+
   const cityItem = proviceItem.cities.filter(city => {
     return city.city_name === cityName;
   })[0];
 
   return cityItem.universities;
+}
+
+/* 解析JWT数据 */
+const parseSessionToken = (token) => {
+  try {
+    if (token) {
+      return JSON.parse(Base64.decode(token.split('.')[1]));
+    }
+  } catch (err) {
+    console.log(err);
+  }
+
+  /* 默认返回空对象 */
+  return null;
 }
 
 module.exports = {
@@ -134,5 +149,6 @@ module.exports = {
   createJWT,
   createProviceList,
   createCityList,
-  createSchoolList
-} 
+  createSchoolList,
+  parseSessionToken,
+}
