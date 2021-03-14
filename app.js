@@ -5,6 +5,7 @@ const json = require('koa-json')
 const onerror = require('koa-onerror')
 const bodyparser = require('koa-bodyparser')
 const logger = require('koa-logger')
+const { parseToken } = require('./middleware/index');
 
 const utils = require('./utils');
 const createAllTables = require('./utils/mysql/createAllTables');
@@ -26,6 +27,8 @@ app.use(require('koa-static')(__dirname + '/public'))
 app.use(views(__dirname + '/views', {
   extension: 'ejs'
 }))
+
+app.use(parseToken());
 
 // logger
 app.use(async (ctx, next) => {
