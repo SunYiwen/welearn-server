@@ -145,7 +145,7 @@ const parseSessionToken = (token) => {
 const uuid = (id) => {
   const code = Date.now().toString(32);
 
-  return code.split('').reverse().slice(0,6).join('');
+  return code.split('').reverse().slice(0,6).join('').toLocaleUpperCase();
 }
 
 module.exports = {
