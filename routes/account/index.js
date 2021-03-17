@@ -64,6 +64,38 @@ router.post('/register-user', async function (ctx, next) {
 
 });
 
+router.get('/role-list', async function (ctx, next) {
+  const body = ctx.request.body;
+  const { UserID } = body;
+  const sql = 'SELECT * FROM role WHERE userID = ?';
+  const results = await query(sql, [UserID]);
+  const studentList = results.filter((roleItem) => {
+    return roleItem.userType == 1;
+  });
+
+  const teacherList = results.filter((roleItem) => {
+    return roleItem.userType == 2;
+  });
+
+  ctx.body = {
+    roleList: {
+      studentList, 
+      teacherList
+    }
+  }
+});
+
+/** 更新用户信息 */
+router.get('/user-info', async function(ctx, next) {
+  const body = ctx.request.body;
+  const { UserID } = body;
+  const sql = 'SELECT * FROM user WHERE userID = ?';
+  const results = await query(sql, [UserID]);
+  ctx.body = {
+    UserInfoDetail: results[0],
+  }
+});
+
 
 
 module.exports = router;

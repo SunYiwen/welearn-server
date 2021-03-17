@@ -141,6 +141,13 @@ const parseSessionToken = (token) => {
   return null;
 }
 
+/** 创建唯一ID */
+const uuid = (id) => {
+  const code = Date.now().toString(32);
+
+  return code.split('').reverse().slice(0,6).join('');
+}
+
 module.exports = {
   useRoutes,
   complexPath,
@@ -151,4 +158,5 @@ module.exports = {
   createCityList,
   createSchoolList,
   parseSessionToken,
+  uuid
 }

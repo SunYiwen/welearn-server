@@ -1,5 +1,6 @@
 const router = require('koa-router')();
 const { query } = require('../../utils/mysql/db');
+const { uuid } = require('../../utils/index');
 
 /* 设置路由前缀 */
 router.prefix('/group');
@@ -14,9 +15,22 @@ router.post('/register', async function (ctx, next) {
   const results = await query(searchSchoolSql, [SchoolName]);
   const schoolID = results[0].schoolID;
 
+
+  let codeResults = [];
+  let code = '';
+  do {
+    /* 班级码 */
+    code = uuid();
+
+    codeResults = await query('SELECT * FROM code WHERE code = ?', [code]);
+  } while (codeResults.length > 0);
+
+  /* 随机码插入数据库 */
+  await query('INSERT INTO code SET ?', { code: code });
+
   /* 往数据库中插入数据 */
-  const sql = 'INSERT INTO class set ?';
-  const result = await query(sql, { groupName: GroupName, schoolName: SchoolName, subject: Subject, schoolID: schoolID, });
+  const sql = 'INSERT INTO class SET ?';
+  const result = await query(sql, { groupName: GroupName, schoolName: SchoolName, subject: Subject, schoolID: schoolID, code: code });
   const groupID = result.insertId;
 
   /* 查询用户数据信息 */
@@ -27,12 +41,14 @@ router.post('/register', async function (ctx, next) {
 
   /* 添加用户角色 */
   const roleSql = "INSERT INTO role set ?";
-  await query(roleSql, {userID: UserID, userType: userInfo.userType, groupID: groupID});
+  await query(roleSql, { userID: UserID, userType: 2, groupID: groupID, groupName: GroupName, subject: Subject, schoolName: SchoolName });
 
   ctx.body = {
     groupID: groupID,
   };
 
 });
+
+/* 学生根据班级码进入班级 */
 
 module.exports = router;
