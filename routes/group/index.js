@@ -60,6 +60,7 @@ router.post('/join', async function (ctx, next) {
 
   /* 班级码不存在的情况 */
   if (length === 0) {
+    ctx.status = 404;
     return ctx.body = {
       Msg: 'fail',
       GroupID: 0
@@ -67,10 +68,23 @@ router.post('/join', async function (ctx, next) {
   }
 
   const groupInfo = groupResults[0];
-  const { groupID, groupName, subject, schoolName } = groupInfo;
+  const { groupID, groupName, subject, schoolName, studentNumber } = groupInfo;
+  /* 验证学生是否已经加入班级 */
+  const results = await query('SELECT * FROM role WHERE userID = ? AND userType = 1 AND groupID = ?', [UserID, groupID]);
+  if (results.length > 0) {
+    return ctx.body = {
+      Msg: 'have joined',
+      GroupID: 0
+    }
+  };
+
   /* 添加用户角色 */
   const roleSql = "INSERT INTO role set ?";
   await query(roleSql, { userID: UserID, userType: 1, groupID, groupName, subject, schoolName });
+
+  /* 更新班级人数 */
+  const updateStudentNumberSql = 'UPDATE class set studentNumber = ? WHERE groupID = ?';
+  await query(updateStudentNumberSql, [studentNumber + 1, groupID]);
 
   return ctx.body = {
     Msg: 'success',
