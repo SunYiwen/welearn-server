@@ -4,6 +4,7 @@ const views = require('koa-views')
 const json = require('koa-json')
 const onerror = require('koa-onerror')
 const bodyparser = require('koa-bodyparser')
+const koaBody = require('koa-body')
 const logger = require('koa-logger')
 const { parseToken } = require('./middleware/index');
 
@@ -20,6 +21,13 @@ onerror(app)
 app.use(bodyparser({
   enableTypes: ['json', 'form', 'text']
 }))
+app.use(koaBody({
+  // 支持文件格式
+  multipart: true,
+  formidable: {
+    maxFileSize: 2 * 1024 * 1024,
+  }
+}));
 app.use(json())
 app.use(logger())
 app.use(require('koa-static')(__dirname + '/public'))
