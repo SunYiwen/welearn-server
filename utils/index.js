@@ -145,8 +145,49 @@ const parseSessionToken = (token) => {
 const uuid = (id) => {
   const code = Date.now().toString(32);
 
-  return code.split('').reverse().slice(0,6).join('').toLocaleUpperCase();
+  return code.split('').reverse().slice(0, 6).join('').toLocaleUpperCase();
 }
+
+/**
+ * @desc 日期时间格式化
+ * @param time 时间，可以是字符串，也可以是时间戳
+ * @param fmt 指定格式，字符串：'yyyy-MM-dd hh:mm:ss:S'
+ * @return 时间字符串
+ */
+const dateTimeFormatter = (time, fmt = 'yyyy-MM-dd hh:mm:ss', isTimestamp = false) => {
+  if (!time) {
+    return '';
+  }
+  let res = fmt;
+  if (isTimestamp) {
+    time = `${time}`;
+    if (time.length === 10) {
+      time = `${time}000`;
+    }
+    time = parseInt(time, 10);
+  }
+  time = time.replace ? time.replace(/-/g, '/') : time;
+  const date = new Date(time);
+  const o = {
+    'M+': date.getMonth() + 1,
+    'd+': date.getDate(),
+    'h+': date.getHours(),
+    'm+': date.getMinutes(),
+    's+': date.getSeconds(),
+    'q+': Math.floor((date.getMonth() + 3) / 3),
+    S: date.getMilliseconds(),
+  };
+  if (/(y+)/.test(res)) {
+    res = res.replace(RegExp.$1, `${date.getFullYear()}`.substr(4 - RegExp.$1.length));
+  }
+  Object.keys(o).forEach((k) => {
+    if (new RegExp(`(${k})`).test(res)) {
+      res = res.replace(RegExp.$1, RegExp.$1.length === 1 ? o[k] : `00${o[k]}`.substr(`${o[k]}`.length));
+    }
+  });
+  return res;
+};
+
 
 module.exports = {
   useRoutes,
@@ -158,5 +199,6 @@ module.exports = {
   createCityList,
   createSchoolList,
   parseSessionToken,
-  uuid
+  uuid,
+  dateTimeFormatter
 }

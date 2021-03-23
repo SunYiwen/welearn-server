@@ -17,10 +17,7 @@ createAllTables();
 // error handler
 onerror(app)
 
-// middlewares
-app.use(bodyparser({
-  enableTypes: ['json', 'form', 'text']
-}))
+// middlewares koaBody放在bodyparser之后导致post请求失败
 app.use(koaBody({
   // 支持文件格式
   multipart: true,
@@ -28,6 +25,11 @@ app.use(koaBody({
     maxFileSize: 2 * 1024 * 1024,
   }
 }));
+
+app.use(bodyparser({
+  enableTypes: ['json', 'form', 'text']
+}))
+
 app.use(json())
 app.use(logger())
 app.use(require('koa-static')(__dirname + '/public'))
