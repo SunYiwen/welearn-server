@@ -5,7 +5,8 @@ const router = require('koa-router')();
 // 设置路由前缀
 router.prefix('/task');
 
-router.post('/task', async function (ctx, next) {
+/* 创建任务 */
+router.post('/task', async (ctx, next) => {
   const body = ctx.request.body;
 
   let { taskName, groupID, UserID, status, expiredAt, createdAt, updatedAt, subject, contentDetail } = body;
@@ -47,5 +48,32 @@ router.post('/task', async function (ctx, next) {
     Msg: 'success',
   }
 });
+
+/* 查询老师对应班级的任务信息 */
+router.get('/group/taskList', async (ctx, next) => {
+  const body = ctx.request.body;
+  const { UserID } = body;
+  let { groupID } = ctx.request.query;
+  const tasks = await query('SELECT * FROM task WHERE groupID = ? AND createdUserID = ?', [groupID, UserID]);
+
+  ctx.body = {
+    taskList: tasks,
+  };
+});
+
+/* 查询学生对应班级的任务信息 */
+router.get('/student/taskList', async (ctx, next) => {
+  const body = ctx.request.body;
+  const { UserID } = body;
+
+  let { groupID } = ctx.request.query;
+  const tasks = await query('SELECT * FROM job WHERE groupID = ? AND studentUserID = ?', [groupID, UserID]);
+
+  ctx.body = {
+    taskList: tasks,
+  };
+});
+
+
 
 module.exports = router;
