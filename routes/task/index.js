@@ -67,7 +67,7 @@ router.get('/student/taskList', async (ctx, next) => {
   const { UserID } = body;
 
   let { groupID } = ctx.request.query;
-  const tasks = await query('SELECT * FROM job WHERE groupID = ? AND studentUserID = ?', [groupID, UserID]);
+  const tasks = await query('SELECT * FROM task WHERE groupID = ?', [groupID]);
 
   ctx.body = {
     taskList: tasks,
