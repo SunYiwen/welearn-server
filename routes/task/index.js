@@ -74,6 +74,30 @@ router.get('/student/taskList', async (ctx, next) => {
   };
 });
 
+/* 删除指定任务 */
+router.post('/delete', async (ctx, next) => {
+  const body = ctx.request.body;
+  const { UserID, TaskID } = body;
+
+  // 删除task
+  await query('DELETE FROM task WHERE taskID = ?', [TaskID]);
+
+  // 删除未完成job
+  const jobs = await query('SELECT * FROM job WHERE taskID = ?', [TaskID]);
+
+  for (let job of jobs) {
+    // 未完成状态下的任务
+    if (job.status === 0) {
+      const { jobID } = job;
+      await query('DELETE FROM job WHERE jobID = ?', [jobID]);
+    }
+  }
+
+  ctx.body = {
+    Msg: 'success'
+  };
+
+})
 
 
 module.exports = router;
