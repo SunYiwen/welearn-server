@@ -1,4 +1,3 @@
-const { use } = require("../app");
 const { parseSessionToken } = require("../utils");
 const { PUBLIC_API } = require("../utils/constant");
 
