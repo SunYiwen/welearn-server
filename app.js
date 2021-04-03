@@ -7,6 +7,16 @@ const bodyparser = require('koa-bodyparser')
 const koaBody = require('koa-body')
 const logger = require('koa-logger')
 const { parseToken } = require('./middleware/index');
+const https = require('https')
+const sslify = require('koa-sslify').default
+const fs = require('fs')
+
+const options = {
+  key: fs.readFileSync('./utils/https/welearn0.xyz.key'),
+  cert: fs.readFileSync('./utils/https/welearn0.xyz.pem'),
+}
+
+
 
 const utils = require('./utils');
 const createAllTables = require('./utils/mysql/createAllTables');
@@ -16,6 +26,9 @@ createAllTables();
 
 // error handler
 onerror(app)
+
+
+app.use(sslify())
 
 // middlewares koaBody放在bodyparser之后导致post请求失败
 app.use(koaBody({
@@ -56,5 +69,7 @@ useRoute(app);
 app.on('error', (err, ctx) => {
   console.error('server error', err, ctx)
 });
+
+https.createServer(options, app.callback()).listen(5300);
 
 module.exports = app
