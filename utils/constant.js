@@ -2,7 +2,7 @@
 const PUBLIC_API = [
   '/school/provice',
   '/school/city',
-  '/school/school',
+  '/school',
   '/account/login',
   '/account/register-user'
 ]

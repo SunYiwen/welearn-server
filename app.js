@@ -16,8 +16,6 @@ const options = {
   cert: fs.readFileSync('./utils/https/welearn0.xyz.pem'),
 }
 
-
-
 const utils = require('./utils');
 const createAllTables = require('./utils/mysql/createAllTables');
 
