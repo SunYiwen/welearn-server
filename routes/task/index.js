@@ -74,12 +74,13 @@ router.get('/student/taskList', async (ctx, next) => {
   for (let task of tasks) {
     const { taskID } = task;
     const jobs = await query('SELECT * FROM job WHERE taskID = ? AND studentUserID = ?', [taskID, UserID]);
-    if (jobs) {
+    if (jobs && jobs.length > 0) {
       const job = jobs[0];
-      taskList.push(task);
+
+      /* 传递task关联的jobID */
+      taskList.push({ ...task, jobID: job.jobID });
     }
   }
-
 
   ctx.body = {
     taskList
@@ -108,8 +109,24 @@ router.post('/delete', async (ctx, next) => {
   ctx.body = {
     Msg: 'success'
   };
+});
 
-})
+/* 学生提交任务 */
+router.post('/submit', async (ctx, next) => {
+  const body = ctx.request.body;
+  const { JobID } = body;
+
+  // 更新数据库
+  await query('UPDATE job SET status = ? WHERE jobID = ?', [3, JobID]);
+
+  // 响应
+  ctx.body = {
+    Msg: 'success'
+  };
+
+});
+
+
 
 
 module.exports = router;
