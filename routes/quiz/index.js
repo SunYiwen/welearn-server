@@ -1,5 +1,6 @@
 const router = require('koa-router')();
 const { query } = require('../../utils/mysql/db');
+const { initAnswerStatus, updatAnswerStats } = require('../../utils/quiz/index');
 
 // 设置路由前缀
 router.prefix('/quiz');
@@ -38,16 +39,36 @@ router.post('/submit', async (ctx, next) => {
     quizItem.AnswerIndexList = AnswerIndexList;
     quizItem.IsRight = IsRight;
   } else {
-    questions.push({
+    quizItem = {
       QuizID,
       AnswerIndexList,
       IsRight
-    });
+    }
+    questions.push(quizItem);
   }
   scoreInfo = { ...scoreInfo, questions };
 
   // 更新数据库
   await query('UPDATE job SET scoreInfo = ?,status = ? WHERE jobID = ?', [JSON.stringify(scoreInfo), 3, JobID]);
+
+  // 更新task中的answerStatus字段
+  const taskID = job.taskID;
+  const results = await query('SELECT * FROM task WHERE taskID = ?', [taskID]);
+  const task = results[0];
+
+  // 获取task答题详情
+  let answerStatus = task.answerStatus;
+
+  const contentDetail = JSON.parse(task.contentDetail);
+
+  // 不存在answerStatus
+  if (!answerStatus) {
+    answerStatus = JSON.parse(answerStatus);
+    await initAnswerStatus(taskID, quizItem, contentDetail.questions, answerStatus);
+  } else {
+    answerStatus = JSON.parse(answerStatus);
+    await updatAnswerStats(taskID, quizItem, contentDetail.questions, answerStatus);
+  }
 
   // 响应
   ctx.body = {
@@ -55,4 +76,29 @@ router.post('/submit', async (ctx, next) => {
   };
 
 });
+
+/* 获取学生任务详情 */
+router.get('/detail', async (ctx, next) => {
+  let { JobID } = ctx.request.query;
+
+  // 获取作业信息
+  const jobs = await query('SELECT * FROM job WHERE jobID = ?', [JobID]);
+
+  const job = jobs[0];
+  const answerList = JSON.parse(job.scoreInfo).questions;
+
+  const { taskID } = job;
+
+  // 查询任务信息
+  const tasks = await query('SELECT * FROM task WHERE taskID = ?', [taskID]);
+  const task = tasks[0];
+
+  const quizList = JSON.parse(task.contentDetail).questions;
+
+  // 响应
+  ctx.body = {
+    quizList, answerList
+  };
+});
+
 module.exports = router;

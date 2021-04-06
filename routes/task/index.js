@@ -78,7 +78,7 @@ router.get('/student/taskList', async (ctx, next) => {
       const job = jobs[0];
 
       /* 传递task关联的jobID */
-      taskList.push({ ...task, jobID: job.jobID });
+      taskList.push({ ...task, jobID: job.jobID, status: job.status });
     }
   }
 
