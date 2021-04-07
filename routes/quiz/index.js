@@ -101,4 +101,23 @@ router.get('/detail', async (ctx, next) => {
   };
 });
 
+/* 获取班级任务详情 */
+router.get('/group-detail', async (ctx, next) => {
+  let { TaskID } = ctx.request.query;
+
+  // 查询任务信息
+  const tasks = await query('SELECT * FROM task WHERE taskID = ?', [TaskID]);
+  const task = tasks[0];
+
+  const answerStats = JSON.parse(task.answerStatus);
+  const quizList = JSON.parse(task.contentDetail).questions;
+
+  // 响应
+  ctx.body = {
+    answerStats,
+    quizList
+  };
+
+});
+
 module.exports = router;
