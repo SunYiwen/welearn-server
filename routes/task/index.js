@@ -54,7 +54,7 @@ router.get('/group/taskList', async (ctx, next) => {
   const body = ctx.request.body;
   const { UserID } = body;
   let { groupID } = ctx.request.query;
-  const tasks = await query('SELECT * FROM task WHERE groupID = ? AND createdUserID = ?', [groupID, UserID]);
+  const tasks = await query('SELECT * FROM task WHERE groupID = ? AND createdUserID = ? AND softDelete = 0', [groupID, UserID]);
 
   ctx.body = {
     taskList: tasks,
@@ -92,8 +92,8 @@ router.post('/delete', async (ctx, next) => {
   const body = ctx.request.body;
   const { UserID, TaskID } = body;
 
-  // 删除task
-  await query('DELETE FROM task WHERE taskID = ?', [TaskID]);
+  // 删除task, 软删除
+  await query('UPDATE task set softDelete = ? WHERE taskID = ?', [1, TaskID]);
 
   // 删除未完成job
   const jobs = await query('SELECT * FROM job WHERE taskID = ?', [TaskID]);

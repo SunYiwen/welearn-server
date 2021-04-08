@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS `task` (
     `groupID` int NOT NULL,
     `createdUserID` int NOT NULL, 
     `status` int NOT NULL,
+    `softDelete` int DEFAULT 0,
     `expiredAt` datetime NOT NULL,
     `createdAt` datetime NOT NULL,
     `updatedAt` datetime NOT NULL,
