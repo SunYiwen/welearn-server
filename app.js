@@ -7,6 +7,7 @@ const bodyparser = require('koa-bodyparser')
 const koaBody = require('koa-body')
 const logger = require('koa-logger')
 const { parseToken } = require('./middleware/index');
+const { distributeRecord } = require('./utils/source/index');
 const https = require('https')
 const sslify = require('koa-sslify').default
 const fs = require('fs')
@@ -18,6 +19,8 @@ const options = {
 
 const utils = require('./utils');
 const createAllTables = require('./utils/mysql/createAllTables');
+
+// distributeRecord();
 
 // 注册数据库表
 createAllTables();
