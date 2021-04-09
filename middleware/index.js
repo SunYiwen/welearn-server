@@ -11,13 +11,14 @@ const parseToken = () => {
       if (data) {
         const userid = data.userid;
         ctx.request.body.UserID = userid;
-        await next();
+        return await next();
       } else {
         return ctx.body = {
           Msg: 'token verify fail',
         }
       }
     }
+    await next();
   }
 }
 
