@@ -1,4 +1,4 @@
-const { parseSessionToken } = require("../utils");
+const { verifyToken } = require("../utils");
 const { PUBLIC_API } = require("../utils/constant");
 
 /* 对token进行解析验证用户信息 */
@@ -7,9 +7,16 @@ const parseToken = () => {
     const url = ctx.path;
     if (!PUBLIC_API.includes(url)) {
       const { token } = ctx.request.headers;
-      let data = parseSessionToken(token);
-      const { userid } = data;
-      ctx.request.body.UserID = userid;
+      let data = verifyToken(token);
+      if (data) {
+        const userid = data.userid;
+        ctx.request.body.UserID = userid;
+        return await next();
+      } else {
+        return ctx.body = {
+          Msg: 'token verify fail',
+        }
+      }
     }
     await next();
   }

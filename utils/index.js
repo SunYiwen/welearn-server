@@ -128,10 +128,10 @@ const createSchoolList = (proviceName, cityName) => {
 }
 
 /* 解析JWT数据 */
-const parseSessionToken = (token) => {
+const verifyToken = (token) => {
   try {
     if (token) {
-      return JSON.parse(Base64.decode(token.split('.')[1]));
+      return jwt.verify(token, 'welearn');
     }
   } catch (err) {
     console.log(err);
@@ -198,7 +198,7 @@ module.exports = {
   createProviceList,
   createCityList,
   createSchoolList,
-  parseSessionToken,
+  verifyToken,
   uuid,
   dateTimeFormatter
 }
