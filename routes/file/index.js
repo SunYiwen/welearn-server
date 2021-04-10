@@ -1,6 +1,7 @@
 const { getFileData } = require('../../utils/fs');
 
 const fs = require('fs');
+const send = require('koa-send');
 const { query } = require('../../utils/mysql/db');
 const { distributeRecord } = require('../../utils/source/index');
 const { FILE } = require('dns');
@@ -178,6 +179,18 @@ router.post('/delete', async (ctx, next) => {
   return ctx.body = {
     Msg: 'Success'
   }
+
+});
+
+// 下载文件
+router.get('/download', async (ctx, next) => {
+  const { FileID } = ctx.request.query;
+  const files = await query('SELECT * FROM file WHERE fileID = ?', [FileID]);
+
+  const file = files[0];
+  
+  console.log("dir", __dirname);
+  await send(ctx, file.fileName, {root: __dirname + '/files'});
 
 });
 
