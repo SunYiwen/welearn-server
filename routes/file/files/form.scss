@@ -1,0 +1,64 @@
+.form {
+  &-cell {
+    display: flex;
+    height: 56px;
+    flex-direction: row;
+    align-items: center;
+    font-size: 18px;
+    border-bottom: 1px solid rgba($color: #000000, $alpha: 0.05);
+  }
+
+  &-label {
+    min-width: 90px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding-right: 10px;
+  }
+
+  &-field {
+    flex-grow: 1;
+
+    &.error {
+      color: #FA5151;
+    }
+
+    &-trigger {
+      height: 56px;
+      align-items: center;
+      display: flex;
+
+      &.blank {
+        color: rgba($color: #000000, $alpha: 0.2);
+      }
+    }
+  }
+
+  &-error {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    line-height: 1;
+
+    &-icon {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &-select {
+    height: 56px;
+    display: flex;
+    align-items: center;
+
+    &.blank {
+      color: rgba($color: #000000, $alpha: 0.2);
+    }
+  }
+
+  &-input {
+    height: 56px;
+    display: flex;
+    align-items: center;
+  }
+}

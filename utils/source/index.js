@@ -1,6 +1,7 @@
 const { query } = require('../mysql/db');
 const distributeRecord = async () => {
   const records = await query('SELECT * FROM record');
+  console.log('records', records);
   const queueMap = new Map();
 
   for (let record of records) {
