@@ -134,7 +134,7 @@ router.get('/approvedList', async (ctx, next) => {
         const ownerID = file[0].ownerID;
         const users = await query('SELECT * FROM user WHERE userID = ?', [ownerID]);
         const userName = users[0].name;
-        fileList.push({...file[0], uploadUser: userName});
+        fileList.push({ ...file[0], uploadUser: userName });
       }
     }
     if (fileList.length > 0) {
@@ -152,7 +152,7 @@ router.get('/approvedList', async (ctx, next) => {
 
 // 审核文件通过
 router.post('/approved', async (ctx, next) => {
-  const { fileID } = ctx.request.body;
+  const { fileID, approved } = ctx.request.body;
 
   // 获取文件记录
   const files = await query('SELECT * from file WHERE fileID = ?', [fileID]);
@@ -160,19 +160,30 @@ router.post('/approved', async (ctx, next) => {
 
   const groupID = file.groupID;
 
-  // 更新文件状态
-  await query('UPDATE file SET status = 1 WHERE fileID = ?', [fileID]);
+  // 更新文件状态,仅同意通过的时候
+  if (approved) {
+    await query('UPDATE file SET status = 1 WHERE fileID = ?', [fileID]);
+  }
+
 
   // 刷新复核表
   const lists = await query('SELECT fileIDList from approvedList WHERE groupID = ?', [groupID]);
-  let fileIDList = JSON.parse(lists[0]);
+  let fileIDList = JSON.parse(lists[0].fileIDList);
+  
+  const index = fileIDList.indexOf(fileID.toString());
+  
 
-  const index = fileIDList.indexOf(fileID);
   if (index != -1) {
     fileIDList.splice(index, 1);
   }
+  
   await query('UPDATE approvedList SET fileIDList = ? WHERE groupID = ?', [JSON.stringify(fileIDList), groupID]);
 
+  // 将记录存放进入历史表
+  const ownerID = file.ownerID;
+  const users = await query('SELECT * FROM user WHERE userID = ?', [ownerID]);
+  const userName = users[0].name;
+  await query('INSERT INTO historyRecord set ?', { ...file, uploadName: userName, approved: approved ? 1 : 0 });
 
   return ctx.body = {
     Msg: 'success'
