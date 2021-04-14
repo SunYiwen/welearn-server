@@ -1,4 +1,5 @@
 const { getFileData } = require('../../utils/fs');
+const { dateTimeFormatter } = require('../../utils/index');
 
 const fs = require('fs');
 const send = require('koa-send');
@@ -152,7 +153,8 @@ router.get('/approvedList', async (ctx, next) => {
 
 // 审核文件通过
 router.post('/approved', async (ctx, next) => {
-  const { fileID, approved } = ctx.request.body;
+  const { fileID, approved, updatedAt, UserID } = ctx.request.body;
+  const updatedAtTime = dateTimeFormatter(updatedAt);
 
   // 获取文件记录
   const files = await query('SELECT * from file WHERE fileID = ?', [fileID]);
@@ -169,21 +171,21 @@ router.post('/approved', async (ctx, next) => {
   // 刷新复核表
   const lists = await query('SELECT fileIDList from approvedList WHERE groupID = ?', [groupID]);
   let fileIDList = JSON.parse(lists[0].fileIDList);
-  
+
   const index = fileIDList.indexOf(fileID.toString());
-  
+
 
   if (index != -1) {
     fileIDList.splice(index, 1);
   }
-  
+
   await query('UPDATE approvedList SET fileIDList = ? WHERE groupID = ?', [JSON.stringify(fileIDList), groupID]);
 
   // 将记录存放进入历史表
   const ownerID = file.ownerID;
   const users = await query('SELECT * FROM user WHERE userID = ?', [ownerID]);
   const userName = users[0].name;
-  await query('INSERT INTO historyRecord set ?', { ...file, uploadName: userName, approved: approved ? 1 : 0 });
+  await query('INSERT INTO historyRecord set ?', { ...file, opUserID: UserID, uploadName: userName, approved: approved ? 1 : 0, updatedAt: updatedAtTime });
 
   return ctx.body = {
     Msg: 'success'
@@ -222,6 +224,18 @@ router.get('/download', async (ctx, next) => {
   console.log("dir", __dirname);
   await send(ctx, file.fileName, { root: __dirname + '/files' });
 
+});
+
+// 获取审批历史记录
+router.get('/history', async (ctx, next) => {
+  const { UserID } = ctx.request.body;
+  const records = await query('SELECT * FROM historyRecord WHERE opUserID = ?', [UserID]);
+
+  return ctx.body = {
+    historyRecords: [
+      ...records,
+    ]
+  }
 });
 
 

@@ -9,5 +9,7 @@ CREATE TABLE IF NOT EXISTS `historyRecord` (
     `status`int NOT NULL DEFAULT 0,
     `approved`int NOT NULL DEFAULT 0,
     `uploadName` varchar(30) NOT NULL,
+    `opUserID` int NOT NULL,
+    `updatedAt` datetime,
     PRIMARY KEY(`recordID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
