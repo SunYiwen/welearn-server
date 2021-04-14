@@ -79,20 +79,40 @@ router.get('/role-list', async function (ctx, next) {
 
   ctx.body = {
     roleList: {
-      studentList, 
+      studentList,
       teacherList
     }
   }
 });
 
 /** 更新用户信息 */
-router.get('/user-info', async function(ctx, next) {
+router.get('/user-info', async function (ctx, next) {
   const body = ctx.request.body;
   const { UserID } = body;
   const sql = 'SELECT * FROM user WHERE userID = ?';
   const results = await query(sql, [UserID]);
   ctx.body = {
     UserInfoDetail: results[0],
+  }
+});
+
+/* 老师申请学生权限 */
+router.post('/be-student', async (ctx, next) => {
+  const body = ctx.request.body;
+  const { UserID } = body;
+  const sql = 'SELECT * FROM user WHERE userID = ?';
+  const results = await query(sql, [UserID]);
+  const user = results[0];
+
+  if (user.userType == 2) {
+    await query('UPDATE user SET userType = 3 WHERE userID = ?', [UserID]);
+    return ctx.body = {
+      Msg: 'Success',
+    }
+  }
+
+  return ctx.body = {
+    Msg: 'Fail',
   }
 });
 
