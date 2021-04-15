@@ -111,11 +111,17 @@ router.get('/group-detail', async (ctx, next) => {
 
   const answerStats = JSON.parse(task.answerStatus);
   const quizList = JSON.parse(task.contentDetail).questions;
+  const submitJob = await query('SELECT * FROM job WHERE taskID = ? AND status = 3', [TaskID]);
+  const unfinishedJob = await query('SELECT * FROM job WHERE taskID = ? AND status = 0', [TaskID]);
+  task.finishNumber = submitJob.length;
+  task.undoneNumber = unfinishedJob.length;
+
 
   // 响应
   ctx.body = {
     answerStats,
-    quizList
+    quizList,
+    task
   };
 
 });
