@@ -77,6 +77,15 @@ router.get('/role-list', async function (ctx, next) {
     return roleItem.userType == 2;
   });
 
+  // 往班级信息中增加课程码
+  for (let i = 0; i < teacherList.length; i++) {
+    const role = teacherList[i];
+    const groupID = role.groupID;
+    const results = await query('SELECT * FROM class WHERE groupID = ?', [groupID]);
+    const code = results[0].code;
+    role.code = code;
+  }
+
   ctx.body = {
     roleList: {
       studentList,
