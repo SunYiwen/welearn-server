@@ -1,4 +1,5 @@
 const { getFileData } = require('../../utils/fs');
+const { dateTimeFormatter } = require('../../utils/index');
 
 const fs = require('fs');
 const send = require('koa-send');
@@ -64,14 +65,14 @@ router.post('/upload-file', async (ctx, next) => {
       filePath,
       groupID,
       ownerID: UserID,
-      status: userType === 1 ? 0 : 1,
+      status: userType == 1 ? 0 : 1,
       userType,
     });
 
     const fileID = result.insertId;
 
     // 3、数据库写入上传记录
-    if (userType === 1) {
+    if (userType == 1) {
       await query('INSERT INTO record set ?', {
         groupID,
         fileID,
@@ -115,45 +116,76 @@ router.get('/files', async (ctx, next) => {
 
 // 指定班级的审核列表
 router.get('/approvedList', async (ctx, next) => {
-  const { groupID } = ctx.request.query;
-  const results = await query('SELECT fileIDList from approvedList WHERE groupID = ?', [groupID]);
-  let fileIDList = [];
+  const { UserID } = ctx.request.body;
+  const groups = await query('SELECT groupID FROM role WHERE userID = ? AND userType = 2', [UserID]);
+  const listMap = {};
 
-  if (results && results.length > 0) {
-    fileIDList = JSON.parse(results[0]);
-  }
+  for (let group of groups) {
+    const results = await query('SELECT fileIDList from approvedList WHERE groupID = ?', [group.groupID]);
+    let fileIDList = [];
 
-  let fileList = [];
-  for (let fileID of fileIDList) {
-    const file = await query('SELECT * FROM file WHERE fileID = ?', [fileID]);
-    if (file && file.length > 0) {
-      fileList.push(file[0]);
+    if (results && results.length > 0) {
+      fileIDList = JSON.parse(results[0].fileIDList);
     }
-  }
 
+    let fileList = [];
+    for (let fileID of fileIDList) {
+      const file = await query('SELECT * FROM file WHERE fileID = ?', [fileID]);
+      if (file && file.length > 0) {
+        const ownerID = file[0].ownerID;
+        const users = await query('SELECT * FROM user WHERE userID = ?', [ownerID]);
+        const userName = users[0].name;
+        fileList.push({ ...file[0], uploadUser: userName });
+      }
+    }
+    if (fileList.length > 0) {
+      // 提取班级信息
+      const groupInfo = await query('SELECT * FROM class WHERE groupID = ?', [group.groupID]);
+      listMap[groupInfo[0].groupName] = fileList;
+    }
+
+  }
   return ctx.body = {
-    fileList
+    listMap,
   }
 
 });
 
 // 审核文件通过
 router.post('/approved', async (ctx, next) => {
-  const { fileID, groupID } = ctx.request.body;
+  const { fileID, approved, updatedAt, UserID } = ctx.request.body;
+  const updatedAtTime = dateTimeFormatter(updatedAt);
 
-  // 更新文件状态
-  await query('UPDATE file SET status = 1 WHERE fileID = ?', [fileID]);
+  // 获取文件记录
+  const files = await query('SELECT * from file WHERE fileID = ?', [fileID]);
+  const file = files[0];
+
+  const groupID = file.groupID;
+
+  // 更新文件状态,仅同意通过的时候
+  if (approved) {
+    await query('UPDATE file SET status = 1 WHERE fileID = ?', [fileID]);
+  }
+
 
   // 刷新复核表
   const lists = await query('SELECT fileIDList from approvedList WHERE groupID = ?', [groupID]);
-  let fileIDList = JSON.parse(lists[0]);
+  let fileIDList = JSON.parse(lists[0].fileIDList);
 
-  const index = fileIDList.indexOf(fileID);
+  const index = fileIDList.indexOf(fileID.toString());
+
+
   if (index != -1) {
     fileIDList.splice(index, 1);
   }
+
   await query('UPDATE approvedList SET fileIDList = ? WHERE groupID = ?', [JSON.stringify(fileIDList), groupID]);
 
+  // 将记录存放进入历史表
+  const ownerID = file.ownerID;
+  const users = await query('SELECT * FROM user WHERE userID = ?', [ownerID]);
+  const userName = users[0].name;
+  await query('INSERT INTO historyRecord set ?', { ...file, opUserID: UserID, uploadName: userName, approved: approved ? 1 : 0, updatedAt: updatedAtTime });
 
   return ctx.body = {
     Msg: 'success'
@@ -188,10 +220,22 @@ router.get('/download', async (ctx, next) => {
   const files = await query('SELECT * FROM file WHERE fileID = ?', [FileID]);
 
   const file = files[0];
-  
-  console.log("dir", __dirname);
-  await send(ctx, file.fileName, {root: __dirname + '/files'});
 
+  console.log("dir", __dirname);
+  await send(ctx, file.fileName, { root: __dirname + '/files' });
+
+});
+
+// 获取审批历史记录
+router.get('/history', async (ctx, next) => {
+  const { UserID } = ctx.request.body;
+  const records = await query('SELECT * FROM historyRecord WHERE opUserID = ?', [UserID]);
+
+  return ctx.body = {
+    historyRecords: [
+      ...records,
+    ]
+  }
 });
 
 
