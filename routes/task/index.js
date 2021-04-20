@@ -9,14 +9,58 @@ router.prefix('/task');
 router.post('/task', async (ctx, next) => {
   const body = ctx.request.body;
 
-  let { taskName, groupID, UserID, status, expiredAt, createdAt, updatedAt, subject, contentDetail } = body;
+  let { taskName, groupID, UserID, status, expiredAt, createdAt, updatedAt, subject, contentDetail, taskID } = body;
   expiredAt = dateTimeFormatter(expiredAt);
   createdAt = dateTimeFormatter(createdAt);
   updatedAt = dateTimeFormatter(updatedAt);
 
+  // 查找是否已经存在该task
+  const hasTask = await query('SELECT * FROM task WHERE taskID = ?', [taskID]);
+  if (hasTask && hasTask.length >= 1) {
+    // 更新task内容
+    await query(`UPDATE task SET ? WHERE taskID = ${taskID}`, { taskName, status, expiredAt, contentDetail: JSON.stringify(contentDetail) });
+
+    if (hasTask[0].status == 0 && status == 1) {
+      /* 批量生成job */
+      const studentResults = await query('SELECT userID from role WHERE groupID = ? AND userType = 1', [groupID]);
+
+      // 获取更新之后的task内容
+      const tasks = await query('SELECT * FROM task WHERE taskID = ?', [taskID]);
+      const task = tasks[0];
+      for (let item of studentResults) {
+        const { userID } = item;
+
+        /* 查找学生相关信息 */
+        const userResults = await query('SELECT * FROM user WHERE userID = ?', [userID]);
+        const studentUserInfo = userResults[0];
+
+        const createJobSql = 'INSERT INTO job SET ?';
+        await query(createJobSql, {
+          taskID: task.taskID,
+          groupID: task.groupID,
+          studentUserID: studentUserInfo.userID,
+          studentName: studentUserInfo.name,
+          studentAvatar: studentUserInfo.avatarURL,
+          status: 0,
+          updatedAt: task.updatedAt,
+          expiredAt: task.expiredAt,
+          createdAt: task.createdAt,
+          scoreInfo: '',
+        });
+      }
+
+      return ctx.body = {
+        Msg: 'success',
+      }
+
+    }
+  }
+
+
+
   const createTaskSql = 'INSERT INTO task SET ?';
   const result = await query(createTaskSql, { taskName, groupID, createdUserID: UserID, status, expiredAt, createdAt, updatedAt, subject, contentDetail: JSON.stringify(contentDetail) })
-  const taskID = result.insertId;
+  taskID = result.insertId;
 
   if (status === 1) {
     /* 批量生成job */
