@@ -19,8 +19,9 @@ const execute = async () => {
                 await query(sql, params);
             }
         }
-
     }
+
+    console.log('school data finished!');
 
 }
 

@@ -55,6 +55,7 @@ router.post('/upload-file', async (ctx, next) => {
 
     // 创建可写流
     const upStream = fs.createWriteStream(filePath);
+    
     // 可读流通过管道写入可写流
     reader.pipe(upStream);
 
