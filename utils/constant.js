@@ -4,7 +4,8 @@ const PUBLIC_API = [
   '/school/city',
   '/school',
   '/account/login',
-  '/account/register-user'
+  '/account/register-user',
+  '/'
 ]
 
 module.exports = {
