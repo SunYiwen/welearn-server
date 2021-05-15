@@ -138,7 +138,7 @@ router.post('/user-name', async (ctx, next) => {
 });
 
 /* 修改用户头像 */
-router.post('/', async (ctx, next) => {
+router.post('/avatar', async (ctx, next) => {
   const body = ctx.request.body;
   const { AvatarURL, UserID } = body;
   await query('UPDATE user SET avatarURL = ? WHERE userID = ?', [AvatarURL, UserID]);
