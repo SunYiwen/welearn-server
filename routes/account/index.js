@@ -125,6 +125,18 @@ router.post('/be-student', async (ctx, next) => {
   }
 });
 
+/* 修改用户昵称 */
+router.post('/user-name', async (ctx, next) => {
+  const body = ctx.request.body;
+  const { UserName, UserID } = body;
+  await query('UPDATE user SET name = ? WHERE userID = ?', [UserName, UserID]);
+
+  ctx.body = {
+    Code: 200,
+    Msg: 'success',
+  }
+});
+
 
 
 module.exports = router;
